@@ -13,7 +13,7 @@ ENV PHP_VERSION 8.1
 # `apt-cache madison php8.1` to list available minor versions
 ENV COMPOSER_VERSION 2.4.4
 # `apt-cache madison nginx` to list available versions
-ENV NGINX_VERSION 1.25.5
+ENV NGINX_VERSION 1.25.5-1
 
 # Install Craft Requirements
 RUN set -x \
