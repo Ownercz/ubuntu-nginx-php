@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
 LABEL maintainer="jonathan@jdsdev.com"
 
@@ -11,10 +11,10 @@ ENV DEBIAN_FRONTEND noninteractive
 # ./php/{php_version}/*
 ENV PHP_VERSION 8.1
 # `apt-cache madison php8.1` to list available minor versions
-ENV PHP_MINOR_VERSION 8.1.13-1+ubuntu18.04.1+deb.sury.org+1
+ENV PHP_MINOR_VERSION 8.1.13-1+ubuntu22.04.1+deb.sury.org+1
 ENV COMPOSER_VERSION 2.4.4
 # `apt-cache madison nginx` to list available versions
-ENV NGINX_VERSION 1.23.2-1~bionic
+ENV NGINX_VERSION 1.23.4
 
 # Install Craft Requirements
 RUN set -x \
@@ -33,7 +33,7 @@ RUN set -x \
         zip \
     && LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y \
     && curl -o /usr/share/keyrings/nginx_signing.key http://nginx.org/keys/nginx_signing.key \
-    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ bionic nginx" > /etc/apt/sources.list.d/nginx.list \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ jammy nginx" > /etc/apt/sources.list.d/nginx.list \
     && apt-get update && apt-get install -yq --no-install-recommends \
         nginx=${NGINX_VERSION} \
         php${PHP_VERSION}-bcmath=${PHP_MINOR_VERSION} \
