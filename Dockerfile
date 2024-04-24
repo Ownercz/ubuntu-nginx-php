@@ -13,7 +13,7 @@ ENV PHP_VERSION 8.1
 # `apt-cache madison php8.1` to list available minor versions
 ENV COMPOSER_VERSION 2.4.4
 # `apt-cache madison nginx` to list available versions
-ENV NGINX_VERSION 1.25.5-1
+#ENV NGINX_VERSION 1.25.5-1
 
 # Install Craft Requirements
 RUN set -x \
@@ -34,7 +34,8 @@ RUN set -x \
     && curl -o /usr/share/keyrings/nginx_signing.key http://nginx.org/keys/nginx_signing.key \
     && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ jammy nginx" > /etc/apt/sources.list.d/nginx.list \
     && apt-get update && apt-get install -yq --no-install-recommends \
-        nginx=${NGINX_VERSION} \
+        nginx\
+        #=${NGINX_VERSION} \
         php${PHP_VERSION}-bcmath \
         php${PHP_VERSION}-cli \
         php${PHP_VERSION}-curl \
