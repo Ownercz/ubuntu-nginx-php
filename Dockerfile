@@ -11,7 +11,6 @@ ENV DEBIAN_FRONTEND noninteractive
 # ./php/{php_version}/*
 ENV PHP_VERSION 8.1
 # `apt-cache madison php8.1` to list available minor versions
-ENV PHP_MINOR_VERSION 8.1.13-1+ubuntu22.04.1+deb.sury.org+1
 ENV COMPOSER_VERSION 2.4.4
 # `apt-cache madison nginx` to list available versions
 ENV NGINX_VERSION 1.23.4
@@ -36,20 +35,20 @@ RUN set -x \
     && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ jammy nginx" > /etc/apt/sources.list.d/nginx.list \
     && apt-get update && apt-get install -yq --no-install-recommends \
         nginx=${NGINX_VERSION} \
-        php${PHP_VERSION}-bcmath=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-cli=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-curl=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-fpm=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-gd=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-gmp=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-intl=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-mbstring=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-mysql=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-opcache=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-readline=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-soap=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-xml=${PHP_MINOR_VERSION} \
-        php${PHP_VERSION}-zip=${PHP_MINOR_VERSION} \
+        php${PHP_VERSION}-bcmath \
+        php${PHP_VERSION}-cli \
+        php${PHP_VERSION}-curl \
+        php${PHP_VERSION}-fpm \
+        php${PHP_VERSION}-gd \
+        php${PHP_VERSION}-gmp \
+        php${PHP_VERSION}-intl \
+        php${PHP_VERSION}-mbstring \
+        php${PHP_VERSION}-mysql \
+        php${PHP_VERSION}-opcache \
+        php${PHP_VERSION}-readline \
+        php${PHP_VERSION}-soap \
+        php${PHP_VERSION}-xml \
+        php${PHP_VERSION}-zip \
         php${PHP_VERSION}-imagick \
         php${PHP_VERSION}-redis \
     && pip install --no-cache-dir supervisor supervisor-stdout \
