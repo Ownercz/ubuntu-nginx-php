@@ -79,7 +79,7 @@ RUN set -x \
 
 # Nginx config
 COPY conf/nginx /etc/nginx
-MV /etc/nginx/default-${UBUNTU_SLUG_CFG}.conf /etc/nginx/default.conf
+RUN mv /etc/nginx/default-${UBUNTU_SLUG_CFG}.conf /etc/nginx/default.conf
 
 # Supervisor config
 COPY conf/supervisor/supervisord-${UBUNTU_SLUG_CFG}.conf /etc/supervisord.conf
