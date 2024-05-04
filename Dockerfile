@@ -52,7 +52,7 @@ RUN set -x \
         php${PHP_VERSION}-zip \
         php${PHP_VERSION}-imagick \
         php${PHP_VERSION}-redis \
-    && pip3 install --no-cache-dir supervisor supervisor-stdout \
+    && pip3 install --no-cache-dir supervisor\
     && printf "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d \
     && apt-get autoremove --purge -y \
         software-properties-common \
