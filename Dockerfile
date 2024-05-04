@@ -1,21 +1,10 @@
 FROM ubuntu:22.04
 
-LABEL maintainer="jonathan@jdsdev.com"
-
-# Let the container know that there is no tty
+LABEL maintainer="radim@lipovcan.cz"
 ENV DEBIAN_FRONTEND noninteractive
 
-# NOTE: When updating PHP_VERSION, update the following as well:
-# ./conf/supervisor/supervisord.conf
-# ./conf/nginx/conf.d/default.conf
-# ./php/{php_version}/*
 ENV PHP_VERSION 8.1
-# `apt-cache madison php8.1` to list available minor versions
 ENV COMPOSER_VERSION 2.4.4
-# `apt-cache madison nginx` to list available versions
-#ENV NGINX_VERSION 1.25.5-1
-
-# Install Craft Requirements
 RUN set -x \
     && apt-get update \
     && apt-get install -yq --no-install-recommends \
@@ -85,13 +74,6 @@ RUN set -x \
         -e "s/;pm.max_requests = 500/pm.max_requests = 200/g" \
         -e "s/^;clear_env = no$/clear_env = no/" \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf
-
-# Install Composer
-RUN curl -o /tmp/composer-setup.php https://getcomposer.org/installer \
-  && curl -o /tmp/composer-setup.sig https://composer.github.io/installer.sig \
-  && php -r "if (hash('SHA384', file_get_contents('/tmp/composer-setup.php')) !== trim(file_get_contents('/tmp/composer-setup.sig'))) { unlink('/tmp/composer-setup.php'); echo 'Invalid installer' . PHP_EOL; exit(1); }" \
-  && php /tmp/composer-setup.php --no-ansi --install-dir=/usr/local/bin --filename=composer --version=${COMPOSER_VERSION} \
-  && rm -rf /tmp/*
 
 # Nginx config
 COPY conf/nginx /etc/nginx
