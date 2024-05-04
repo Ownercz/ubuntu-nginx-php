@@ -4,6 +4,7 @@ LABEL maintainer="radim@lipovcan.cz"
 ENV DEBIAN_FRONTEND noninteractive
 
 ENV PHP_VERSION 8.1
+ENV UBUNTU_SLUG_CFG u22
 
 RUN set -x \
     && apt-get update \
