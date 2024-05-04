@@ -74,7 +74,7 @@ RUN set -x \
         -e "s/;pm.max_requests = 500/pm.max_requests = 200/g" \
         -e "s/^;clear_env = no$/clear_env = no/" \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
-    && mkdir -p /run/php-fpm
+    && mkdir -p /run/php
 
 # Nginx config
 COPY conf/nginx /etc/nginx
