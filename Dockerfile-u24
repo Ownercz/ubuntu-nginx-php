@@ -4,6 +4,7 @@ LABEL maintainer="radim@lipovcan.cz"
 ENV DEBIAN_FRONTEND noninteractive
 
 ENV PHP_VERSION 8.3
+ENV UBUNTU_SLUG_CFG u24
 
 RUN set -x \
     && apt-get update \
@@ -80,7 +81,7 @@ RUN set -x \
 COPY conf/nginx /etc/nginx
 
 # Supervisor config
-COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
+COPY conf/supervisor/supervisord-${UBUNTU_SLUG_CFG}.conf /etc/supervisord.conf
 
 # Override default nginx welcome page
 COPY html /usr/share/nginx/html
