@@ -24,7 +24,7 @@ RUN set -x \
         gnupg2 \
         iproute2 \
         mysql-client \
-        python3-pip3 \
+        python3-pip \
         python3-setuptools \
         python3-wheel \
         software-properties-common \
