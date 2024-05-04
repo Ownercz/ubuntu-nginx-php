@@ -4,7 +4,6 @@ LABEL maintainer="radim@lipovcan.cz"
 ENV DEBIAN_FRONTEND noninteractive
 
 ENV PHP_VERSION 8.3
-ENV UBUNTU_SLUG_CFG u24
 
 RUN set -x \
     && apt-get update \
@@ -22,7 +21,7 @@ RUN set -x \
         zip \
     && LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y \
     && curl -o /usr/share/keyrings/nginx_signing.key http://nginx.org/keys/nginx_signing.key \
-    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ jammy nginx" > /etc/apt/sources.list.d/nginx.list \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ noble nginx" > /etc/apt/sources.list.d/nginx.list \
     && apt-get update && apt-get install -yq --no-install-recommends \
         nginx\
         #=${NGINX_VERSION} \
@@ -42,7 +41,7 @@ RUN set -x \
         php${PHP_VERSION}-zip \
         php${PHP_VERSION}-imagick \
         php${PHP_VERSION}-redis \
-    && pip3 install --no-cache-dir supervisor --break-system-packages\
+    && pip3 install --no-cache-dir supervisor\
     && printf "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d \
     && apt-get autoremove --purge -y \
         software-properties-common \
@@ -79,11 +78,9 @@ RUN set -x \
 
 # Nginx config
 COPY conf/nginx /etc/nginx
-RUN mv /etc/nginx/conf.d/default-${UBUNTU_SLUG_CFG}.conf /etc/nginx/default.conf && \
-    rm /etc/nginx/conf.d/default-* -Rvf
 
 # Supervisor config
-COPY conf/supervisor/supervisord-${UBUNTU_SLUG_CFG}.conf /etc/supervisord.conf
+COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
 
 # Override default nginx welcome page
 COPY html /usr/share/nginx/html

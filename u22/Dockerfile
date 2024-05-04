@@ -4,8 +4,7 @@ LABEL maintainer="radim@lipovcan.cz"
 ENV DEBIAN_FRONTEND noninteractive
 
 ENV PHP_VERSION 8.1
-ENV UBUNTU_SLUG_CFG u22
-
+ENV COMPOSER_VERSION 2.4.4
 RUN set -x \
     && apt-get update \
     && apt-get install -yq --no-install-recommends \
@@ -79,11 +78,9 @@ RUN set -x \
 
 # Nginx config
 COPY conf/nginx /etc/nginx
-RUN mv /etc/nginx/conf.d/default-${UBUNTU_SLUG_CFG}.conf /etc/nginx/default.conf && \
-    rm /etc/nginx/conf.d/default-* -Rvf
 
 # Supervisor config
-COPY conf/supervisor/supervisord-${UBUNTU_SLUG_CFG}.conf /etc/supervisord.conf
+COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
 
 # Override default nginx welcome page
 COPY html /usr/share/nginx/html
