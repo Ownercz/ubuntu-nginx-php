@@ -25,6 +25,8 @@ RUN set -x \
         mailutils \
         nano \
         vim \
+        dnsutils \
+        iputils-ping \
     && LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y \
     && curl -o /usr/share/keyrings/nginx_signing.key http://nginx.org/keys/nginx_signing.key \
     && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ noble nginx" > /etc/apt/sources.list.d/nginx.list \
