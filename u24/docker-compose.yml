@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  nginx-php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    image: nginx-php:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./html:/usr/share/nginx/html
+    environment:
+      - PHP_VERSION=8.3
