@@ -42,7 +42,7 @@ RUN set -x \
     fi \
     && apt-get update \
     && apt-get install -yq --no-install-recommends \
-        nginx==1.24.0 \
+        nginx=1.24.0 \
         php${PHP_VERSION}-bcmath \
         php${PHP_VERSION}-cli \
         php${PHP_VERSION}-curl \
