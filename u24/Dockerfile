@@ -80,7 +80,7 @@ RUN set -x  \
         -e "s/;opcache.interned_strings_buffer=8/opcache.interned_strings_buffer=64/g" \
         -e "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=30000/g" \
         -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=0/g" \
-        /etc/php/${PHP_VERSION}/fpm/php.ini \
+        /etc/php/${PHP_VERSION}/fpm/php.ini
 
 RUN set -x \
     && sed -i \
@@ -99,7 +99,7 @@ RUN set -x \
         /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf 
 
 RUN set -x \
-     mkdir -p /run/php
+    && mkdir -p /run/php
 
 # Nginx config
 COPY conf/nginx /etc/nginx
