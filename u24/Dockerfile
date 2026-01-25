@@ -58,14 +58,20 @@ RUN set -x \
         php${PHP_VERSION}-xml \
         php${PHP_VERSION}-zip \
         php${PHP_VERSION}-imagick \
-        php${PHP_VERSION}-redis \
-    && pip3 install --no-cache-dir supervisor --break-system-packages \
-    && printf "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d \
-    && apt-get autoremove --purge -y \
+        php${PHP_VERSION}-redis
+
+RUN set -x  \
+    && pip3 install --no-cache-dir supervisor --break-system-packages 
+RUN set -x  \
+    && printf "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d 
+RUN set -x  \
+    &&  apt-get autoremove --purge -y \
         software-properties-common \
-        gnupg2 \
-    && apt-get -y clean \
-    && rm -rf /var/lib/apt/lists/* /var/tmp/* 
+        gnupg2 
+RUN set -x  \
+    && apt-get -y clean 
+RUN set -x  \
+    &&  rm -rf /var/lib/apt/lists/* /var/tmp/* 
 RUN set -x  \
     && sed -i \
         -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g" \
