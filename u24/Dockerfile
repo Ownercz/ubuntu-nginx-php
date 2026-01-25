@@ -59,6 +59,7 @@ RUN set -x \
         php${PHP_VERSION}-zip \
         php${PHP_VERSION}-imagick \
         php${PHP_VERSION}-redis \
+RUN set -x  \
     && pip3 install --no-cache-dir supervisor --break-system-packages\
     && printf "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d \
     && apt-get autoremove --purge -y \
