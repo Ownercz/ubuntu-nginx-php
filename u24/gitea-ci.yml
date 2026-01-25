@@ -1,0 +1,50 @@
+name: Build Nginx and PHP image
+run-name: Build Nginx and PHP image image and publish
+on: [push]
+jobs:
+  Build-Minecraft-Stats-Image:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.3', '8.4', '8.5']
+    steps:            
+      - name: Prepare | Setup git
+        run: |
+              git config --global user.name "Radim Lipovčan"
+              git config --global user.email "radim@lipovcan.cz"                            
+      - name: Build | Install Docker
+        run: |  
+              git clone https://github.com/Ownercz/ubuntu-nginx-php.git .
+              apt-get update && apt-get install docker.io -y     
+      - name: Docker | Build u24 (php${{ matrix.php }})
+        run: |
+              # Login to Docker Hub
+              echo "${{ secrets.DOCKERHUB_GITEA_TOKEN }}" | docker login -u ownercz --password-stdin
+              
+              cd u24
+              ls -lah
+
+              PHP_VERSION="${{ matrix.php }}"
+              hash="$(git rev-parse HEAD)"
+              hashed="$(echo "$hash" | cut -c1-10)"
+                          
+              docker buildx rm multiarch-builder 2>/dev/null || true
+              docker buildx create --name multiarch-builder --driver docker-container --use
+              docker buildx inspect --bootstrap
+              
+              # Verify builder supports both platforms
+              docker buildx ls
+              
+              # Build and push multi-architecture image (buildx --push handles manifest creation)
+              docker buildx build \
+                  --platform linux/amd64,linux/arm64 \
+                  --file Dockerfile \
+                  --build-arg PHP_VERSION="$PHP_VERSION" \
+                  --tag "ownercz/nginx-php:u24-php${PHP_VERSION}" \
+                  --tag "ownercz/nginx-php:u24-php${PHP_VERSION}-${hashed}" \
+                  --push \
+                  --progress=plain \
+                  .
+              
+              # Verify manifest includes both architectures
+                docker buildx imagetools inspect "ownercz/nginx-php:u24-php${PHP_VERSION}"

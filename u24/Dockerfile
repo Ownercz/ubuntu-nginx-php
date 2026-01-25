@@ -3,7 +3,8 @@ FROM ubuntu:24.04
 LABEL maintainer="radim@lipovcan.cz"
 ENV DEBIAN_FRONTEND noninteractive
 
-ENV PHP_VERSION 8.3
+ARG PHP_VERSION=8.3
+ENV PHP_VERSION=${PHP_VERSION}
 
 # Set architecture-specific variables
 ARG TARGETPLATFORM
@@ -23,7 +24,7 @@ RUN set -x \
         software-properties-common \
         unzip \
         zip \
-        libsasl2-modules \ 
+        libsasl2-modules \
         postfix \
         rsyslog \
         mailutils \
