@@ -40,9 +40,9 @@ RUN set -x \
     else \
         echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ noble nginx" > /etc/apt/sources.list.d/nginx.list; \
     fi \
-    && apt-get update && apt-get install -yq --no-install-recommends \
-        nginx\
-        #=${NGINX_VERSION} \
+    && apt-get update \
+    && apt-get install -yq --no-install-recommends \
+        nginx==1.24.0 \
         php${PHP_VERSION}-bcmath \
         php${PHP_VERSION}-cli \
         php${PHP_VERSION}-curl \
@@ -59,8 +59,7 @@ RUN set -x \
         php${PHP_VERSION}-zip \
         php${PHP_VERSION}-imagick \
         php${PHP_VERSION}-redis \
-RUN set -x  \
-    && pip3 install --no-cache-dir supervisor --break-system-packages\
+    && pip3 install --no-cache-dir supervisor --break-system-packages \
     && printf "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d \
     && apt-get autoremove --purge -y \
         software-properties-common \
