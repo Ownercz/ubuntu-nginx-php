@@ -65,7 +65,8 @@ RUN set -x \
         software-properties-common \
         gnupg2 \
     && apt-get -y clean \
-    && rm -rf /var/lib/apt/lists/* /var/tmp/* \
+    && rm -rf /var/lib/apt/lists/* /var/tmp/* 
+RUN set -x  \
     && sed -i \
         -e "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/g" \
         -e "s/memory_limit\s*=\s*.*/memory_limit = 256M/g" \
@@ -80,9 +81,13 @@ RUN set -x \
         -e "s/;opcache.max_accelerated_files=10000/opcache.max_accelerated_files=30000/g" \
         -e "s/;opcache.revalidate_freq=2/opcache.revalidate_freq=0/g" \
         /etc/php/${PHP_VERSION}/fpm/php.ini \
+
+RUN set -x \
     && sed -i \
         -e "s/;daemonize\s*=\s*yes/daemonize = no/g" \
-        /etc/php/${PHP_VERSION}/fpm/php-fpm.conf \
+        /etc/php/${PHP_VERSION}/fpm/php-fpm.conf 
+
+RUN set -x \
     && sed -i \
         -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" \
         -e "s/pm.max_children = 5/pm.max_children = 4/g" \
@@ -91,8 +96,10 @@ RUN set -x \
         -e "s/pm.max_spare_servers = 3/pm.max_spare_servers = 4/g" \
         -e "s/;pm.max_requests = 500/pm.max_requests = 200/g" \
         -e "s/^;clear_env = no$/clear_env = no/" \
-        /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf \
-    && mkdir -p /run/php
+        /etc/php/${PHP_VERSION}/fpm/pool.d/www.conf 
+
+RUN set -x \
+     mkdir -p /run/php
 
 # Nginx config
 COPY conf/nginx /etc/nginx
