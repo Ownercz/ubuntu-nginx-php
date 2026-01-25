@@ -2,31 +2,39 @@ name: Build Nginx and PHP image
 run-name: Build Nginx and PHP image image and publish
 on: [push]
 jobs:
-  Build-Minecraft-Stats-Image:
+  Build-Ubuntu-PHP-Image:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         php: ['8.2', '8.3', '8.4', '8.5']
     steps:            
       - name: Prepare | Setup git
+        env:
+          PHP_VERSION: ${{ matrix.php }}
         run: |
               git config --global user.name "Radim Lipovčan"
-              git config --global user.email "radim@lipovcan.cz"                            
+              git config --global user.email "radim@lipovcan.cz"                                      
       - name: Build | Install Docker
+        env:
+          PHP_VERSION: ${{ matrix.php }}
         run: |  
               git clone https://github.com/Ownercz/ubuntu-nginx-php.git .
-              apt-get update && apt-get install docker.io -y     
-      - name: Docker | Build u24 (php${{ matrix.php }})
+              apt-get update && apt-get install docker.io -y                 
+      - name: Docker | Build u24
+        env:
+          PHP_VERSION: ${{ matrix.php }}
         run: |
               # Login to Docker Hub
               echo "${{ secrets.DOCKERHUB_GITEA_TOKEN }}" | docker login -u ownercz --password-stdin
+              hash=${{env.GITHUB_SHA}}
+              hashed=${hash::10}     
+              echo "PHP version:"                   
+              echo ${PHP_VERSION} 
+              echo "Hash:"                   
+              echo ${hashed} 
               
               cd u24
               ls -lah
-
-              PHP_VERSION="${{ matrix.php }}"
-              hash="$(git rev-parse HEAD)"
-              hashed="$(echo "$hash" | cut -c1-10)"
                           
               docker buildx rm multiarch-builder 2>/dev/null || true
               docker buildx create --name multiarch-builder --driver docker-container --use
@@ -44,7 +52,7 @@ jobs:
                   --tag "ownercz/nginx-php:u24-php${PHP_VERSION}-${hashed}" \
                   --push \
                   --progress=plain \
-                  .
-              
+                  .              
+      
               # Verify manifest includes both architectures
                 docker buildx imagetools inspect "ownercz/nginx-php:u24-php${PHP_VERSION}"
