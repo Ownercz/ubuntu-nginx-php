@@ -57,8 +57,9 @@ RUN set -x \
         php${PHP_VERSION}-xml \
         php${PHP_VERSION}-zip \
         php${PHP_VERSION}-imagick \
-        php${PHP_VERSION}-redis
-    && if dpkg --compare-versions "$PHP_VERSION" lt 8.5; then apt-get install -yq --no-install-recommends php${PHP_VERSION}-opcache; fi \
+        php${PHP_VERSION}-redis \
+    && if dpkg --compare-versions "$PHP_VERSION" lt 8.5; then apt-get install -yq --no-install-recommends php${PHP_VERSION}-opcache; fi
+
 RUN set -x  \
     && pip3 install --no-cache-dir supervisor --break-system-packages 
 RUN set -x  \
