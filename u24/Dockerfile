@@ -110,8 +110,9 @@ RUN set -x \
 # Nginx config
 COPY conf/nginx /etc/nginx
 
-# Supervisor config
-COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
+# Supervisor config (template)
+COPY conf/supervisor/supervisord.conf.template /etc/supervisord.conf.template
+RUN envsubst < /etc/supervisord.conf.template > /etc/supervisord.conf
 
 # Override default nginx welcome page
 COPY html /usr/share/nginx/html
