@@ -110,6 +110,10 @@ RUN set -x \
 # Nginx config
 COPY conf/nginx /etc/nginx
 
+# Nginx default config (template)
+COPY conf/nginx/conf.d/default.conf.template  /etc/nginx/conf.d/default.conf.template
+RUN envsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+
 # Supervisor config (template)
 COPY conf/supervisor/supervisord.conf.template /etc/supervisord.conf.template
 RUN envsubst < /etc/supervisord.conf.template > /etc/supervisord.conf
