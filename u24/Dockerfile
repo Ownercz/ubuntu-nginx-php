@@ -32,6 +32,7 @@ RUN set -x \
         vim \
         dnsutils \
         iputils-ping \
+        telnet \
 # includes envsubst
         gettext \ 
     && LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y \
