@@ -1,0 +1,12 @@
+---
+- name: restart nginx-php
+  ansible.builtin.shell: |
+    docker compose -f {{ nginx_php_base_path }}/compose/docker-compose.yml up -d --force-recreate
+
+- name: postmap reload
+  ansible.builtin.shell: |
+    docker exec {{ container_name_prefix }}-{{ inventory_hostname_short }} postmap /etc/postfix/sasl_passwd || true
+    docker exec {{ container_name_prefix }}-{{ inventory_hostname_short }} postmap /etc/postfix/generic || true
+    docker exec {{ container_name_prefix }}-{{ inventory_hostname_short }} postmap /etc/postfix/relayhost_map || true
+    docker exec {{ container_name_prefix }}-{{ inventory_hostname_short }} newaliases || true
+    docker exec {{ container_name_prefix }}-{{ inventory_hostname_short }} postfix reload || true

@@ -1,0 +1,75 @@
+---
+- name: Create directory structure
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
+  with_items:
+    - "{{ nginx_php_base_path }}"
+    - "{{ nginx_php_base_path }}/data"
+    - "{{ nginx_php_base_path }}/data/log"
+    - "{{ nginx_php_base_path }}/data/log/nginx"
+    - "{{ nginx_php_base_path }}/compose"
+    - "{{ nginx_php_base_path }}/compose/sites"
+
+- name: Deploy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ nginx_php_base_path }}/compose/docker-compose.yml"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nginx-php
+
+- name: Deploy .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ nginx_php_base_path }}/compose/.env"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Deploy nginx.conf
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_php_base_path }}/compose/nginx.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nginx-php
+
+- name: Deploy startpost.sh
+  ansible.builtin.template:
+    src: startpost.sh.j2
+    dest: "{{ nginx_php_base_path }}/compose/startpost.sh"
+    owner: root
+    group: root
+    mode: 0755
+  when: postfix_enabled | default(false)
+
+- name: Deploy postfix resolv.conf
+  ansible.builtin.template:
+    src: postfix-resolv.conf.j2
+    dest: "{{ nginx_php_base_path }}/compose/postfix-resolv.conf"
+    owner: root
+    group: root
+    mode: 0644
+  when: postfix_enabled | default(false)
+
+- name: Ensure shared Docker network exists
+  ansible.builtin.shell: |
+    docker network inspect {{ docker_network }} >/dev/null 2>&1 || docker network create {{ docker_network }}
+  changed_when: false
+  ignore_errors: true
+
+- name: Prepare sites
+  ansible.builtin.include_tasks:
+    file: prepare.yml
+  with_items: "{{ sites }}"
+
+- name: Apply postfix configuration
+  ansible.builtin.include_tasks:
+    file: postfix.yml
+  when: postfix_enabled | default(false)

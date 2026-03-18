@@ -1,0 +1,30 @@
+server {
+    listen {{ item.port }};
+    listen [::]:{{ item.port }};
+
+    server_name {{ item.name }};
+
+    root /var/www/{{ item.name }};
+
+    index index.php index.html index.htm;
+
+    client_max_body_size 512M;
+    client_body_timeout 300s;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass unix:/run/php/php{{ php_version }}-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include /etc/nginx/fastcgi_params;
+        fastcgi_buffers 16 16k;
+        fastcgi_buffer_size 32k;
+    }
+
+    error_page 404 /404.php;
+}

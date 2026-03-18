@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  nginx-php:
+    image: {{ nginx_php_image }}
+    container_name: {{ container_name_prefix }}-{{ inventory_hostname_short }}
+    hostname: {{ container_name_prefix }}-{{ inventory_hostname_short }}
+    restart: always
+    user: root
+    ports:
+      - {{ nginx_php_default_port }}:8080
+{% for item in sites %}
+      - {{ item.port }}:{{ item.port }}
+{% endfor %}
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /usr/share/zoneinfo/UTC:/usr/share/zoneinfo/UTC:ro
+{% if postfix_enabled | default(false) %}
+      - ../compose/startpost.sh:/opt/startpost.sh
+      - {{ nginx_php_base_path }}/data/postfix/main.cf:/etc/postfix/main.cf
+      - {{ nginx_php_base_path }}/data/postfix/sasl_passwd:/etc/postfix/sasl_passwd
+      - {{ nginx_php_base_path }}/data/postfix/generic:/etc/postfix/generic
+      - {{ nginx_php_base_path }}/data/postfix/relayhost_map:/etc/postfix/relayhost_map
+      - {{ nginx_php_base_path }}/data/postfix/aliases:/etc/aliases
+      - ../compose/postfix-resolv.conf:/var/spool/postfix/etc/resolv.conf
+{% endif %}
+      - ../compose/nginx.conf:/etc/nginx/nginx.conf
+      - {{ nginx_php_base_path }}/data/log/:/var/log/
+      - {{ nginx_php_base_path }}/data/log/nginx:/var/log/nginx
+      - {{ ssl_cert_path }}:/opt/fullchain.pem
+      - {{ ssl_key_path }}:/opt/privkey.pem
+{% for item in sites %}
+      - ../compose/sites/{{ item.name }}.conf:/etc/nginx/conf.d/{{ item.name }}.conf
+      - {{ nginx_php_base_path }}/data/{{ item.name }}:/var/www/{{ item.name }}
+{% endfor %}
+    networks:
+      - {{ docker_network }}
+
+networks:
+  {{ docker_network }}:
+    external: true
+    name: {{ docker_network }}

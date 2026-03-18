@@ -1,0 +1,11 @@
+# Map local sender addresses to external sender address
+# Format: local_address external_address
+
+www-data@{{ container_name_prefix }}-{{ inventory_hostname_short }} {{ postfix_sender_email }}
+root@{{ container_name_prefix }}-{{ inventory_hostname_short }} {{ postfix_sender_email }}
+
+www-data@{{ container_name_prefix }}-{{ inventory_hostname_short }}.localdomain {{ postfix_sender_email }}
+root@{{ container_name_prefix }}-{{ inventory_hostname_short }}.localdomain {{ postfix_sender_email }}
+
+root@{{ inventory_hostname }} {{ postfix_sender_email }}
+www-data@{{ inventory_hostname }} {{ postfix_sender_email }}

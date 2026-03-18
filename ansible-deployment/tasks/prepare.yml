@@ -1,0 +1,18 @@
+---
+- name: "Create web root for {{ item.name }}"
+  ansible.builtin.file:
+    path: "{{ nginx_php_base_path }}/data/{{ item.name }}"
+    state: directory
+    recurse: yes
+    owner: root
+    group: root
+  notify: restart nginx-php
+
+- name: "Deploy nginx vhost config for {{ item.name }}"
+  ansible.builtin.template:
+    src: nginx-vhost.conf.j2
+    dest: "{{ nginx_php_base_path }}/compose/sites/{{ item.name }}.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart nginx-php

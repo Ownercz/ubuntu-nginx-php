@@ -1,0 +1,52 @@
+---
+# Docker image to use
+nginx_php_image: "ownercz/nginx-php:u24"
+
+# PHP version used inside the container
+php_version: "8.3"
+
+# Base path on the host for all nginx-php data
+nginx_php_base_path: /opt/docker/nginx-php
+
+# Container name prefix (container will be named {{ container_name_prefix }}-{{ inventory_hostname_short }})
+container_name_prefix: nginx-php
+
+# Default port exposed on the host for the main proxy
+nginx_php_default_port: 8001
+
+# Root email for aliases
+root_mail: admin@example.com
+
+# Docker network name
+docker_network: nginx-internal
+
+# SSL certificate paths on the host
+ssl_cert_path: /opt/ssl/cert.pem
+ssl_key_path: /opt/ssl/cert.key
+
+# Sites to serve - each site gets its own nginx vhost and port
+# name: domain name (used for directory names and nginx server_name)
+# port: port the site listens on inside AND outside the container
+sites:
+  - name: example.com
+    port: 8005
+
+# Postfix SMTP relay configuration (optional - remove if not needed)
+postfix_enabled: true
+postfix_relayhost: "[smtp.example.com]:587"
+postfix_smtp_tls_wrappermode: "no"
+postfix_smtp_tls_security_level: "may"
+postfix_sasl_credentials: "[smtp.example.com]:587 user@example.com:password"
+postfix_sender_email: "server@example.com"
+
+# SSL config block used in nginx vhost templates (optional)
+ssl_config: |
+  ssl_certificate  /opt/fullchain.pem;
+  ssl_certificate_key /opt/privkey.pem;
+
+  ssl_session_timeout 1d;
+  ssl_session_cache shared:SSL:20m;
+  ssl_session_tickets off;
+
+  ssl_protocols TLSv1.2 TLSv1.3;
+  ssl_prefer_server_ciphers on;
