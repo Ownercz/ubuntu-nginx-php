@@ -30,6 +30,7 @@ RUN set -x \
         mailutils \
         nano \
         vim \
+        less \
         dnsutils \
         iputils-ping \
         telnet \
