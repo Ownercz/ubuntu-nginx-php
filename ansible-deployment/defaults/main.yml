@@ -1,9 +1,9 @@
 ---
 # Docker image to use
-nginx_php_image: "ownercz/nginx-php:u24"
+nginx_php_image: "ownercz/nginx-php:u26"
 
 # PHP version used inside the container
-php_version: "8.3"
+php_version: "8.5"
 
 # Base path on the host for all nginx-php data
 nginx_php_base_path: /opt/docker/nginx-php

@@ -1,0 +1,90 @@
+name: Build Nginx and PHP image (u26)
+run-name: Build Nginx and PHP u26 image and publish
+on: [push]
+
+env:
+  IMAGE: ownercz/nginx-php
+  OS_TAG: u26
+  DEFAULT_PHP: "8.5"
+
+jobs:
+  Build-Ubuntu-PHP-Image:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4', '8.5']
+    steps:
+      - name: Prepare | Setup git
+        run: |
+              git config --global user.name "Radim Lipovčan"
+              git config --global user.email "radim@lipovcan.cz"
+
+      - name: Build | Install Docker
+        run: |
+              git clone https://github.com/Ownercz/ubuntu-nginx-php.git .
+              apt-get update && apt-get install docker.io -y
+
+      - name: Docker | Build u26
+        env:
+          PHP_VERSION: ${{ matrix.php }}
+        run: |
+              set -euo pipefail
+
+              # ---- Provenance metadata -----------------------------------------
+              hash="${GITHUB_SHA:-$(git rev-parse HEAD)}"
+              hashed="${hash:0:10}"
+              build_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+              echo "IMAGE        = ${IMAGE}"
+              echo "OS_TAG       = ${OS_TAG}"
+              echo "PHP_VERSION  = ${PHP_VERSION}"
+              echo "DEFAULT_PHP  = ${DEFAULT_PHP}"
+              echo "SHORT_SHA    = ${hashed}"
+              echo "BUILD_DATE   = ${build_date}"
+
+              # ---- Login & buildx ----------------------------------------------
+              echo "${{ secrets.DOCKERHUB_GITEA_TOKEN }}" | docker login -u ownercz --password-stdin
+
+              cd u26
+              ls -lah
+
+              docker buildx rm multiarch-builder 2>/dev/null || true
+              docker buildx create --name multiarch-builder --driver docker-container --use
+              docker buildx inspect --bootstrap
+              docker buildx ls
+
+              # ---- Tag matrix ---------------------------------------------------
+              TAGS=()
+              add_tag() { TAGS+=(--tag "${IMAGE}:$1"); echo "  + $1"; }
+
+              echo "Tags to push:"
+
+              # Per-PHP, OS-pinned (always)
+              add_tag "${OS_TAG}-php${PHP_VERSION}"
+              add_tag "${OS_TAG}-php${PHP_VERSION}-${hashed}"
+
+              # Per-PHP, cross-OS floating (always)
+              add_tag "php${PHP_VERSION}"
+
+              # Default-PHP-only tags
+              if [ "$PHP_VERSION" = "$DEFAULT_PHP" ]; then
+                  add_tag "${OS_TAG}"
+                  add_tag "${OS_TAG}-${hashed}"
+                  add_tag "latest"
+              fi
+
+              # ---- Build & push -------------------------------------------------
+              docker buildx build \
+                  --platform linux/amd64,linux/arm64 \
+                  --file Dockerfile \
+                  --build-arg PHP_VERSION="$PHP_VERSION" \
+                  --build-arg VCS_REF="$hash" \
+                  --build-arg BUILD_DATE="$build_date" \
+                  "${TAGS[@]}" \
+                  --push \
+                  --progress=plain \
+                  .
+
+              # ---- Verify -------------------------------------------------------
+              docker buildx imagetools inspect "${IMAGE}:${OS_TAG}-php${PHP_VERSION}"

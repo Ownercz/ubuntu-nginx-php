@@ -41,8 +41,8 @@ All variables are defined in `defaults/main.yml`. Override them in your inventor
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `nginx_php_image` | `ownercz/nginx-php:u24` | Docker image to pull |
-| `php_version` | `8.3` | PHP version inside the container |
+| `nginx_php_image` | `ownercz/nginx-php:u26` | Docker image to pull |
+| `php_version` | `8.5` | PHP version inside the container |
 | `sites` | *(see below)* | List of sites to serve |
 
 ### Site Definition
@@ -102,8 +102,8 @@ cp -r ansible-deployment /path/to/your/ansible/roles/nginx-php
 
 ```yaml
 # host_vars/web01.yml
-nginx_php_image: "ownercz/nginx-php:u24"
-php_version: "8.3"
+nginx_php_image: "ownercz/nginx-php:u26"
+php_version: "8.5"
 
 ssl_cert_path: /etc/letsencrypt/live/example.com/fullchain.pem
 ssl_key_path: /etc/letsencrypt/live/example.com/privkey.pem

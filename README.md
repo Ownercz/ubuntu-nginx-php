@@ -1,15 +1,17 @@
 # Ubuntu Docker Image with Nginx and PHP
 
 [![Docker Hub](https://img.shields.io/badge/docker%20hub-ownercz%2Fnginx--php-blue.svg?&logo=docker&style=for-the-badge)](https://hub.docker.com/r/ownercz/nginx-php)
-[![License MIT](https://img.shields.io/badge/license-MIT-blue.svg?&style=for-the-badge)](u24/LICENSE.md)
+[![License MIT](https://img.shields.io/badge/license-MIT-blue.svg?&style=for-the-badge)](u26/LICENSE.md)
 
-A production-ready Docker image based on **Ubuntu 24.04** with **Nginx**, **PHP-FPM**, and **Supervisor**. Originally forked from [jdsdev/ubuntu-nginx-php](https://github.com/jdsdev/ubuntu-nginx-php), heavily modified for multi-site hosting with optional Postfix mail relay.
+A production-ready Docker image based on **Ubuntu 26.04 LTS** with **Nginx**, **PHP-FPM**, and **Supervisor**. Originally forked from [jdsdev/ubuntu-nginx-php](https://github.com/jdsdev/ubuntu-nginx-php), heavily modified for multi-site hosting with optional Postfix mail relay.
+
+A legacy Ubuntu 24.04 build is still maintained side-by-side under the [`u24/`](u24/) directory and the `u24*` Docker Hub tags — see the [Legacy `u24` line](#legacy-u24-line) section below.
 
 ## Features
 
-- **Ubuntu 24.04** base image
+- **Ubuntu 26.04 LTS** base image (codename `resolute`)
 - **Nginx** (mainline) with optimized configuration
-- **PHP-FPM** with configurable version (default 8.3, supports up to 8.5)
+- **PHP-FPM** with configurable version (default 8.5, supports 8.2 – 8.5)
 - **Supervisor** managing Nginx + PHP-FPM processes
 - **Multi-architecture** support (AMD64 + ARM64/Ampere)
 - **Postfix** included for outgoing mail relay (optional)
@@ -21,13 +23,13 @@ A production-ready Docker image based on **Ubuntu 24.04** with **Nginx**, **PHP-
 ### Pull from Docker Hub
 
 ```bash
-docker pull ownercz/nginx-php:u24
+docker pull ownercz/nginx-php:u26
 ```
 
 ### Run with Docker
 
 ```bash
-docker run -d -p 8080:8080 ownercz/nginx-php:u24
+docker run -d -p 8080:8080 ownercz/nginx-php:u26
 ```
 
 ### Run with Docker Compose
@@ -37,7 +39,7 @@ version: '3.8'
 
 services:
   nginx-php:
-    image: ownercz/nginx-php:u24
+    image: ownercz/nginx-php:u26
     ports:
       - "8080:8080"
     volumes:
@@ -55,7 +57,7 @@ version: '3.8'
 
 services:
   nginx-php:
-    image: ownercz/nginx-php:u24
+    image: ownercz/nginx-php:u26
     restart: always
     ports:
       - "8080:8080"     # Default site
@@ -124,7 +126,7 @@ The image includes Postfix for sending outgoing mail from PHP applications. To e
 ```yaml
 services:
   nginx-php:
-    image: ownercz/nginx-php:u24
+    image: ownercz/nginx-php:u26
     user: root
     volumes:
       - ./startpost.sh:/opt/startpost.sh
@@ -162,8 +164,8 @@ An example Ansible role is provided in the [`ansible-deployment/`](ansible-deplo
 3. Configure your host variables:
    ```yaml
    # host_vars/web01.yml
-   nginx_php_image: "ownercz/nginx-php:u24"
-   php_version: "8.3"
+   nginx_php_image: "ownercz/nginx-php:u26"
+   php_version: "8.5"
 
    sites:
      - name: example.com
@@ -192,21 +194,21 @@ For full documentation of the Ansible role, see [`ansible-deployment/README.md`]
 ### Standard Build
 
 ```bash
-cd u24
-docker build -t ownercz/nginx-php:u24 .
+cd u26
+docker build -t ownercz/nginx-php:u26 .
 ```
 
 ### Multi-Architecture Build (AMD64 + ARM64)
 
 ```bash
-cd u24
+cd u26
 ./build-multiarch.sh
 ```
 
 ### Custom PHP Version
 
 ```bash
-docker build --build-arg PHP_VERSION=8.5 -t ownercz/nginx-php:u24-php8.5 .
+docker build --build-arg PHP_VERSION=8.4 -t ownercz/nginx-php:u26-php8.4 .
 ```
 
 ## Configuration
@@ -250,11 +252,60 @@ docker build --build-arg PHP_VERSION=8.5 -t ownercz/nginx-php:u24-php8.5 .
 
 **Image:** [ownercz/nginx-php](https://hub.docker.com/r/ownercz/nginx-php)
 
-**Tags:**
-- `u24` — Latest Ubuntu 24.04 build
-- `u24-php8.5` — With PHP 8.5
-- `u24-<commit-sha>` — Pinned to specific commit
+The image is published as a multi-architecture manifest (`linux/amd64` +
+`linux/arm64`) under multiple tags so you can pick the level of stability you
+need. **Pick a tag based on what you want to be stable over time.**
+
+### Tag taxonomy
+
+Anatomy of a tag: `<channel>[-php<X.Y>][-<sha>]`
+
+| Tag | Channel | OS pinned? | PHP pinned? | Commit pinned? |
+|-----|---------|------------|-------------|----------------|
+| `latest` | rolling | no | no (default 8.5) | no |
+| `u26` | rolling | yes (Ubuntu 26.04) | no (default 8.5) | no |
+| `u26-php8.4` | rolling | yes | yes | no |
+| `php8.4` | rolling | no (always newest OS) | yes | no |
+| `u26-<sha>` | immutable | yes | no (default 8.5) | yes |
+| `u26-php8.4-<sha>` | immutable | yes | yes | yes |
+| `u24*` | legacy | yes (Ubuntu 24.04) | varies | varies |
+
+`<sha>` is the first 10 characters of the source commit hash. Image OCI
+labels (`org.opencontainers.image.revision`, `org.opencontainers.image.created`)
+record the same information for offline inspection:
+
+```bash
+docker buildx imagetools inspect ownercz/nginx-php:u26 --format '{{ json . }}' \
+    | jq '.manifest.annotations, .image.config.config.Labels'
+```
+
+### Choosing a tag
+
+| You want… | Use |
+|-----------|-----|
+| Quickest start, willing to upgrade with the project | `latest` |
+| Lock to one PHP minor, follow OS + security updates | `php8.4` (or `u26-php8.4` to also pin the OS) |
+| Reproducible production deploys | A commit-pinned tag: `u26-php8.4-<sha>` |
+| Stay on Ubuntu 24.04 a bit longer | `u24` or `u24-php<X.Y>` |
+
+> **Heads-up on `:latest`** — `:latest` was repointed from the Ubuntu 24.04
+> line (PHP 8.3 default) to Ubuntu 26.04 + PHP 8.5. If you used `:latest` in
+> production, pin to `u24` (or to a `u26-php<X.Y>-<sha>` tag) before pulling.
+
+## Legacy `u24` line
+
+The Ubuntu 24.04 build is still produced from the [`u24/`](u24/) directory.
+Use it if you cannot yet move to Ubuntu 26.04 (for example because the
+`ondrej/php` PPA or `nginx.org` mainline repo has not published packages for
+`resolute` on your build host yet).
+
+```bash
+docker pull ownercz/nginx-php:u24
+```
+
+Note that `:latest` no longer points at `u24` — pin explicitly to `u24` (or to
+a specific `u24-php<X.Y>` tag) if you need the legacy behaviour.
 
 ## License
 
-MIT — See [LICENSE.md](u24/LICENSE.md)
+MIT — See [LICENSE.md](u26/LICENSE.md) (the legacy `u24` line uses [`u24/LICENSE.md`](u24/LICENSE.md)).

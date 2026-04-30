@@ -6,14 +6,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php: ['8.2', '8.3', '8.4', '8.5']
+        php: ['8.5'] 
+        #['8.2', '8.3', '8.4', '8.5']
     steps:            
       - name: Prepare | Setup git
         env:
           PHP_VERSION: ${{ matrix.php }}
         run: |
               git config --global user.name "Radim Lipovčan"
-              git config --global user.email "radim@lipovcan.cz"                                      
+              git config --global user.email "radim@lipovcan.cz"                        
       - name: Build | Install Docker
         env:
           PHP_VERSION: ${{ matrix.php }}
@@ -52,7 +53,7 @@ jobs:
                   --tag "ownercz/nginx-php:u24-php${PHP_VERSION}-${hashed}" \
                   --push \
                   --progress=plain \
-                  .              
+                  .
       
               # Verify manifest includes both architectures
-                docker buildx imagetools inspect "ownercz/nginx-php:u24-php${PHP_VERSION}"
+                docker buildx imagetools inspect "ownercz/nginx-php:ubuntu24-php${PHP_VERSION}"
