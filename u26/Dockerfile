@@ -37,18 +37,25 @@ ARG BUILDPLATFORM
 
 RUN set -x \
     && apt-get update \
+    && apt-get install -yq --no-install-recommends apt-utils
+
+RUN set -x \
     && apt-get install -yq --no-install-recommends \
-        apt-utils \
         curl \
         gnupg2 \
+        software-properties-common \
+        unzip \
+        zip \
+# includes envsubst
+        gettext
+
+RUN set -x \
+    && apt-get install -yq --no-install-recommends \
         iproute2 \
         mysql-client \
         python3-pip \
         python3-setuptools \
         python3-wheel \
-        software-properties-common \
-        unzip \
-        zip \
         libsasl2-modules \
         postfix \
         rsyslog \
@@ -58,13 +65,27 @@ RUN set -x \
         less \
         dnsutils \
         iputils-ping \
-        telnet \
-# includes envsubst
-        gettext \
-    && LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y \
-    && curl -o /usr/share/keyrings/nginx_signing.key http://nginx.org/keys/nginx_signing.key \
-    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ ${UBUNTU_CODENAME} nginx" > /etc/apt/sources.list.d/nginx.list \
-    && apt-get update \
+        telnet
+
+RUN set -x \
+    && success=0 \
+    && for attempt in 1 2 3; do \
+        if LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y; then \
+            success=1; \
+            break; \
+        fi; \
+        echo "add-apt-repository failed on attempt ${attempt}"; \
+    done \
+    && [ "$success" -eq 1 ]
+
+RUN set -x \
+    && curl -fsSL -o /usr/share/keyrings/nginx_signing.key http://nginx.org/keys/nginx_signing.key \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ ${UBUNTU_CODENAME} nginx" > /etc/apt/sources.list.d/nginx.list
+
+RUN set -x \
+    && apt-get update
+
+RUN set -x \
     && apt-get install -yq --no-install-recommends \
         nginx \
         php${PHP_VERSION}-bcmath \
@@ -82,7 +103,9 @@ RUN set -x \
         php${PHP_VERSION}-zip \
         php${PHP_VERSION}-yaml \
         php${PHP_VERSION}-imagick \
-        php${PHP_VERSION}-redis \
+        php${PHP_VERSION}-redis
+
+RUN set -x \
     && if dpkg --compare-versions "$PHP_VERSION" lt 8.5; then apt-get install -yq --no-install-recommends php${PHP_VERSION}-opcache; fi
 
 RUN set -x  \
