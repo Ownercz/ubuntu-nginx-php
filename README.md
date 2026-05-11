@@ -205,6 +205,16 @@ cd u26
 ./build-multiarch.sh
 ```
 
+## CI workflow
+
+A single Gitea Actions workflow now builds and publishes both variants (`u24` and
+`u26`) across PHP `8.2` - `8.5`:
+
+- `.gitea/workflows/gitea-ci.yml`
+
+The workflow keeps `latest` tied to `u26` on default PHP (`8.5`) and publishes
+OS-scoped tags for both variants.
+
 ### Custom PHP Version
 
 ```bash

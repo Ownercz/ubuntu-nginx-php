@@ -35,7 +35,7 @@ RUN set -x \
         iputils-ping \
         telnet \
 # includes envsubst
-        gettext \ 
+        gettext \
     && LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y \
     && curl -o /usr/share/keyrings/nginx_signing.key http://nginx.org/keys/nginx_signing.key \
     && ARCH=$(dpkg --print-architecture) \

@@ -86,6 +86,10 @@ at build time, override the codename used for third-party apt sources:
 docker build --build-arg UBUNTU_CODENAME=noble -t ownercz/nginx-php:u26 .
 ```
 
+The repository CI pipeline intentionally does not set this fallback build arg.
+It keeps `UBUNTU_CODENAME=resolute` in CI so upstream repository availability
+issues are visible immediately.
+
 ## Configuration
 
 See the project root [README.md](../README.md) for full configuration,

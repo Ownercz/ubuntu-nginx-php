@@ -1,10 +1,9 @@
-name: Build Nginx and PHP image (u26)
-run-name: Build Nginx and PHP u26 image and publish
+name: Build Nginx and PHP images (u24 + u26)
+run-name: Build and publish u24/u26 image matrix
 on: [push]
 
 env:
   IMAGE: ownercz/nginx-php
-  OS_TAG: u26
   DEFAULT_PHP: "8.5"
 
 jobs:
@@ -13,11 +12,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        variant: ['u24', 'u26']
         php: ['8.2', '8.3', '8.4', '8.5']
     steps:
       - name: Prepare | Setup git
         run: |
-              git config --global user.name "Radim Lipovčan"
+              git config --global user.name "Radim Lipovcan"
               git config --global user.email "radim@lipovcan.cz"
 
       - name: Build | Install Docker
@@ -25,13 +25,15 @@ jobs:
               git clone https://github.com/Ownercz/ubuntu-nginx-php.git .
               apt-get update && apt-get install docker.io -y
 
-      - name: Docker | Build u26
+      - name: Docker | Build variant
         env:
+          VARIANT: ${{ matrix.variant }}
           PHP_VERSION: ${{ matrix.php }}
         run: |
               set -euo pipefail
 
-              # ---- Provenance metadata -----------------------------------------
+              # ---- Variant and provenance metadata -----------------------------
+              OS_TAG="${VARIANT}"
               hash="${GITHUB_SHA:-$(git rev-parse HEAD)}"
               hashed="${hash:0:10}"
               build_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -46,7 +48,7 @@ jobs:
               # ---- Login & buildx ----------------------------------------------
               echo "${{ secrets.DOCKERHUB_GITEA_TOKEN }}" | docker login -u ownercz --password-stdin
 
-              cd u26
+              cd "${VARIANT}"
               ls -lah
 
               docker buildx rm multiarch-builder 2>/dev/null || true
@@ -68,19 +70,23 @@ jobs:
               add_tag "php${PHP_VERSION}"
 
               # Default-PHP-only tags
-              if [ "$PHP_VERSION" = "$DEFAULT_PHP" ]; then
+              if [ "${PHP_VERSION}" = "${DEFAULT_PHP}" ]; then
                   add_tag "${OS_TAG}"
                   add_tag "${OS_TAG}-${hashed}"
-                  add_tag "latest"
+
+                  # Keep latest bound to u26 default only.
+                  if [ "${OS_TAG}" = "u26" ]; then
+                      add_tag "latest"
+                  fi
               fi
 
               # ---- Build & push -------------------------------------------------
               docker buildx build \
                   --platform linux/amd64,linux/arm64 \
                   --file Dockerfile \
-                  --build-arg PHP_VERSION="$PHP_VERSION" \
-                  --build-arg VCS_REF="$hash" \
-                  --build-arg BUILD_DATE="$build_date" \
+                  --build-arg PHP_VERSION="${PHP_VERSION}" \
+                  --build-arg VCS_REF="${hash}" \
+                  --build-arg BUILD_DATE="${build_date}" \
                   "${TAGS[@]}" \
                   --push \
                   --progress=plain \
