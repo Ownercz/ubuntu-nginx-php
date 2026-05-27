@@ -17,6 +17,7 @@ IMAGE="${IMAGE:-ownercz/nginx-php}"
 OS_TAG="${OS_TAG:-u26}"
 DEFAULT_PHP="${DEFAULT_PHP:-8.5}"
 PHP_VERSION="${PHP_VERSION:-$DEFAULT_PHP}"
+UBUNTU_CODENAME="${UBUNTU_CODENAME:-resolute}"
 PUSH="${PUSH:-1}"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
@@ -29,6 +30,7 @@ BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "Image:    ${IMAGE}"
 echo "OS tag:   ${OS_TAG}"
 echo "PHP:      ${PHP_VERSION}  (default: ${DEFAULT_PHP})"
+echo "Codename: ${UBUNTU_CODENAME}"
 echo "Sha:      ${SHORT_SHA}"
 echo "Build:    ${BUILD_DATE}"
 echo "Push:     ${PUSH}"
@@ -57,6 +59,7 @@ BUILD_ARGS=(
     --platform "linux/amd64,linux/arm64"
     --file Dockerfile
     --build-arg "PHP_VERSION=${PHP_VERSION}"
+    --build-arg "UBUNTU_CODENAME=${UBUNTU_CODENAME}"
     --build-arg "VCS_REF=${VCS_REF}"
     --build-arg "BUILD_DATE=${BUILD_DATE}"
     --progress=plain
@@ -73,6 +76,7 @@ else
         --platform "$(docker version -f '{{.Server.Os}}/{{.Server.Arch}}')" \
         --file Dockerfile \
         --build-arg "PHP_VERSION=${PHP_VERSION}" \
+        --build-arg "UBUNTU_CODENAME=${UBUNTU_CODENAME}" \
         --build-arg "VCS_REF=${VCS_REF}" \
         --build-arg "BUILD_DATE=${BUILD_DATE}" \
         --tag "${IMAGE}:${OS_TAG}-php${PHP_VERSION}" \

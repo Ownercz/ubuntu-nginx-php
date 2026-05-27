@@ -5,6 +5,7 @@ on: [push]
 env:
   IMAGE: ownercz/nginx-php
   DEFAULT_PHP: "8.5"
+  U26_CODENAME: resolute
 
 jobs:
   Build-Ubuntu-PHP-Image:
@@ -14,6 +15,13 @@ jobs:
       matrix:
         variant: ['u24', 'u26']
         php: ['8.2', '8.3', '8.4', '8.5']
+        exclude:
+          - variant: 'u26'
+            php: '8.2'
+          - variant: 'u26'
+            php: '8.3'
+          - variant: 'u26'
+            php: '8.4'
     steps:
       - name: Prepare | Setup git
         run: |
@@ -42,6 +50,7 @@ jobs:
               echo "OS_TAG       = ${OS_TAG}"
               echo "PHP_VERSION  = ${PHP_VERSION}"
               echo "DEFAULT_PHP  = ${DEFAULT_PHP}"
+              echo "U26_CODENAME = ${U26_CODENAME}"
               echo "SHORT_SHA    = ${hashed}"
               echo "BUILD_DATE   = ${build_date}"
 
@@ -66,8 +75,10 @@ jobs:
               add_tag "${OS_TAG}-php${PHP_VERSION}"
               add_tag "${OS_TAG}-php${PHP_VERSION}-${hashed}"
 
-              # Per-PHP, cross-OS floating (always)
-              add_tag "php${PHP_VERSION}"
+              # Per-PHP floating tags track the newest OS line that supports the PHP minor.
+              if [ "${OS_TAG}" = "u26" ] || [ "${PHP_VERSION}" != "${DEFAULT_PHP}" ]; then
+                  add_tag "php${PHP_VERSION}"
+              fi
 
               # Default-PHP-only tags
               if [ "${PHP_VERSION}" = "${DEFAULT_PHP}" ]; then
@@ -81,12 +92,21 @@ jobs:
               fi
 
               # ---- Build & push -------------------------------------------------
+              BUILD_ARGS=(
+                  --file Dockerfile
+                  --build-arg "PHP_VERSION=${PHP_VERSION}"
+                  --build-arg "VCS_REF=${hash}"
+                  --build-arg "BUILD_DATE=${build_date}"
+              )
+
+              if [ "${OS_TAG}" = "u26" ]; then
+                  BUILD_ARGS+=(--build-arg "UBUNTU_CODENAME=${U26_CODENAME}")
+                  echo "Using u26 apt repository codename: ${U26_CODENAME}"
+              fi
+
               docker buildx build \
                   --platform linux/amd64,linux/arm64 \
-                  --file Dockerfile \
-                  --build-arg PHP_VERSION="${PHP_VERSION}" \
-                  --build-arg VCS_REF="${hash}" \
-                  --build-arg BUILD_DATE="${build_date}" \
+                  "${BUILD_ARGS[@]}" \
                   "${TAGS[@]}" \
                   --push \
                   --progress=plain \

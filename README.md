@@ -11,7 +11,7 @@ A legacy Ubuntu 24.04 build is still maintained side-by-side under the [`u24/`](
 
 - **Ubuntu 26.04 LTS** base image (codename `resolute`)
 - **Nginx** (mainline) with optimized configuration
-- **PHP-FPM** with configurable version (default 8.5, supports 8.2 – 8.5)
+- **PHP-FPM** with configurable version (u26 defaults to 8.5; u24 supports 8.2 - 8.5)
 - **Supervisor** managing Nginx + PHP-FPM processes
 - **Multi-architecture** support (AMD64 + ARM64/Ampere)
 - **Postfix** included for outgoing mail relay (optional)
@@ -207,18 +207,19 @@ cd u26
 
 ## CI workflow
 
-A single Gitea Actions workflow now builds and publishes both variants (`u24` and
-`u26`) across PHP `8.2` - `8.5`:
+A single Gitea Actions workflow now builds and publishes the supported image
+matrix: `u24` across PHP `8.2` - `8.5`, plus `u26` on PHP `8.5`:
 
 - `.gitea/workflows/gitea-ci.yml`
 
 The workflow keeps `latest` tied to `u26` on default PHP (`8.5`) and publishes
-OS-scoped tags for both variants.
+OS-scoped tags for both variants. PHP-floating tags point at the newest OS line
+that currently supports that PHP minor.
 
 ### Custom PHP Version
 
 ```bash
-docker build --build-arg PHP_VERSION=8.4 -t ownercz/nginx-php:u26-php8.4 .
+docker build --build-arg PHP_VERSION=8.4 -t ownercz/nginx-php:u24-php8.4 u24
 ```
 
 ## Configuration
@@ -274,10 +275,10 @@ Anatomy of a tag: `<channel>[-php<X.Y>][-<sha>]`
 |-----|---------|------------|-------------|----------------|
 | `latest` | rolling | no | no (default 8.5) | no |
 | `u26` | rolling | yes (Ubuntu 26.04) | no (default 8.5) | no |
-| `u26-php8.4` | rolling | yes | yes | no |
-| `php8.4` | rolling | no (always newest OS) | yes | no |
+| `u24-php8.4` | rolling | yes | yes | no |
+| `php8.4` | rolling | no (newest OS that supports PHP 8.4) | yes | no |
 | `u26-<sha>` | immutable | yes | no (default 8.5) | yes |
-| `u26-php8.4-<sha>` | immutable | yes | yes | yes |
+| `u24-php8.4-<sha>` | immutable | yes | yes | yes |
 | `u24*` | legacy | yes (Ubuntu 24.04) | varies | varies |
 
 `<sha>` is the first 10 characters of the source commit hash. Image OCI
@@ -294,8 +295,8 @@ docker buildx imagetools inspect ownercz/nginx-php:u26 --format '{{ json . }}' \
 | You want… | Use |
 |-----------|-----|
 | Quickest start, willing to upgrade with the project | `latest` |
-| Lock to one PHP minor, follow OS + security updates | `php8.4` (or `u26-php8.4` to also pin the OS) |
-| Reproducible production deploys | A commit-pinned tag: `u26-php8.4-<sha>` |
+| Lock to one PHP minor, follow OS + security updates | `php8.4` (or `u24-php8.4` to also pin the OS) |
+| Reproducible production deploys | A commit-pinned tag: `u24-php8.4-<sha>` or `u26-php8.5-<sha>` |
 | Stay on Ubuntu 24.04 a bit longer | `u24` or `u24-php<X.Y>` |
 
 > **Heads-up on `:latest`** — `:latest` was repointed from the Ubuntu 24.04
@@ -305,9 +306,8 @@ docker buildx imagetools inspect ownercz/nginx-php:u26 --format '{{ json . }}' \
 ## Legacy `u24` line
 
 The Ubuntu 24.04 build is still produced from the [`u24/`](u24/) directory.
-Use it if you cannot yet move to Ubuntu 26.04 (for example because the
-`ondrej/php` PPA or `nginx.org` mainline repo has not published packages for
-`resolute` on your build host yet).
+Use it if you cannot yet move to Ubuntu 26.04, or if you need PHP 8.2, 8.3,
+or 8.4 while the `ondrej/php` PPA does not publish `resolute` packages.
 
 ```bash
 docker pull ownercz/nginx-php:u24

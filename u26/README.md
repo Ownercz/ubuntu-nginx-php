@@ -5,7 +5,7 @@
 ## Introduction
 
 Production-ready Docker image based on **Ubuntu 26.04 LTS** (codename `resolute`)
-with **Nginx mainline**, **PHP-FPM** (default 8.5), and **Supervisor**.
+with **Nginx mainline**, **PHP-FPM** 8.5, and **Supervisor**.
 Multi-architecture builds for `linux/amd64` and `linux/arm64` (Ampere).
 
 The image bundles common PHP extensions (bcmath, curl, gd, gmp, intl, mbstring,
@@ -21,8 +21,8 @@ Pick by how stable you want the reference to be over time.
 |---------------------------|----------------------|-----------------------------------------------|
 | `latest`                  | rolling              | Quick start, willing to track the project     |
 | `u26`                     | rolling (OS-pinned)  | Track Ubuntu 26.04 + default PHP              |
-| `u26-php8.5` … `u26-php8.2` | rolling (OS+PHP)   | Track Ubuntu 26.04 with a specific PHP minor  |
-| `php8.5` … `php8.2`       | rolling (PHP only)   | Always newest OS for a given PHP minor        |
+| `u26-php8.5`              | rolling (OS+PHP)     | Track Ubuntu 26.04 with PHP 8.5               |
+| `php8.5`                  | rolling (PHP only)   | Always newest OS for PHP 8.5                  |
 | `u26-<sha>`               | immutable            | Reproducible deploys, default PHP             |
 | `u26-php<X.Y>-<sha>`      | immutable            | Reproducible deploys, exact PHP               |
 | `u24*` (legacy)           | rolling (legacy OS)  | Stay on Ubuntu 24.04, see [`../u24/`](../u24/) |
@@ -54,41 +54,27 @@ docker build -t ownercz/nginx-php:u26 .
 
 | Arg | Default | Purpose |
 |-----|---------|---------|
-| `PHP_VERSION` | `8.5` | PHP minor version installed inside the image |
-| `UBUNTU_CODENAME` | `resolute` | Codename used for `nginx.org` and `ondrej/php` apt repos. Set to `noble` to fall back to the previous LTS while upstream catches up |
+| `PHP_VERSION` | `8.5` | PHP minor version installed inside the image. Ubuntu 26.04 currently supports PHP 8.5 only in this image |
+| `UBUNTU_CODENAME` | `resolute` | Codename used for the `nginx.org` apt repo |
 | `VCS_REF` | `local` | Source commit hash (`org.opencontainers.image.revision`) |
 | `BUILD_DATE` | `unknown` | RFC3339 build timestamp (`org.opencontainers.image.created`) |
 
-### Pin a different PHP version
+### PHP version support
 
-```bash
-docker build --build-arg PHP_VERSION=8.4 -t ownercz/nginx-php:u26-php8.4 .
-```
+Ubuntu 26.04 builds use the native `resolute` PHP 8.5 packages. PHP 8.2, 8.3,
+and 8.4 remain available on the legacy Ubuntu 24.04 line (`u24-php<X.Y>`) until
+the `ondrej/php` PPA publishes packages compatible with `resolute`.
 
 ### Multi-arch + full tag set (mirrors what CI publishes)
 
 ```bash
 ./build-multiarch.sh                     # default PHP, push all tags
-PHP_VERSION=8.4 ./build-multiarch.sh     # build & push tags for PHP 8.4
 PUSH=0 ./build-multiarch.sh              # local-only single-arch build
 ```
 
-The script derives the same set of tags the CI job publishes (`latest`,
-`u26`, `u26-php<X.Y>`, `php<X.Y>`, plus the immutable `…-<sha>` variants)
-and pushes them in one `docker buildx build --push`.
-
-### Fall back to the previous LTS apt repos
-
-If `nginx.org` or the `ondrej/php` PPA do not yet publish `resolute` packages
-at build time, override the codename used for third-party apt sources:
-
-```bash
-docker build --build-arg UBUNTU_CODENAME=noble -t ownercz/nginx-php:u26 .
-```
-
-The repository CI pipeline intentionally does not set this fallback build arg.
-It keeps `UBUNTU_CODENAME=resolute` in CI so upstream repository availability
-issues are visible immediately.
+The script derives the same set of u26 tags the CI job publishes (`latest`,
+`u26`, `u26-php8.5`, `php8.5`, plus the immutable `…-<sha>` variants) and
+pushes them in one `docker buildx build --push`.
 
 ## Configuration
 

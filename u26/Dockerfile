@@ -1,15 +1,12 @@
 FROM ubuntu:26.04
 
 LABEL maintainer="radim@lipovcan.cz"
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 ARG PHP_VERSION=8.5
 ENV PHP_VERSION=${PHP_VERSION}
 
-# Ubuntu codename used for third-party apt repositories (nginx, ondrej/php).
-# If upstream repos do not yet ship packages for "resolute" at build time,
-# fall back to the previous LTS codename ("noble") via:
-#   --build-arg UBUNTU_CODENAME=noble
+# Ubuntu codename used for the nginx.org apt repository.
 ARG UBUNTU_CODENAME=resolute
 ENV UBUNTU_CODENAME=${UBUNTU_CODENAME}
 
@@ -44,7 +41,6 @@ RUN set -x \
         curl \
         wget \
         gnupg2 \
-        software-properties-common \
         unzip \
         zip \
 # includes envsubst
@@ -69,20 +65,14 @@ RUN set -x \
         telnet
 
 RUN set -x \
-    && success=0 \
-    && for attempt in 1 2 3; do \
-        if LC_ALL=C.UTF-8 add-apt-repository ppa:ondrej/php -y; then \
-            success=1; \
-            break; \
-        fi; \
-        echo "add-apt-repository failed on attempt ${attempt}"; \
-    done \
-    && [ "$success" -eq 1 ]
+    && if [ "${PHP_VERSION}" != "8.5" ]; then \
+        echo "Ubuntu 26.04 builds currently support PHP 8.5 only; ondrej/php does not publish resolute packages yet."; \
+        exit 1; \
+    fi
 
 RUN set -x \
-    && wget https://nginx.org/keys/nginx_signing.key -O - | apt-key add - \
-    && wget -qO /usr/share/keyrings/nginx_signing.key https://nginx.org/keys/nginx_signing.key \
-    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ ${UBUNTU_CODENAME} nginx" > /etc/apt/sources.list.d/nginx.list
+    && wget -qO - https://nginx.org/keys/nginx_signing.key | gpg --dearmor --batch --yes -o /usr/share/keyrings/nginx_signing.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.gpg] http://nginx.org/packages/mainline/ubuntu/ ${UBUNTU_CODENAME} nginx" > /etc/apt/sources.list.d/nginx.list
 
 RUN set -x \
     && apt-get update
@@ -116,7 +106,6 @@ RUN set -x  \
     && printf "#!/bin/sh\nexit 0" > /usr/sbin/policy-rc.d 
 RUN set -x  \
     &&  apt-get autoremove --purge -y \
-        software-properties-common \
         gnupg2 
 RUN set -x  \
     && apt-get -y clean 

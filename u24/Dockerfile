@@ -1,7 +1,7 @@
 FROM ubuntu:24.04
 
 LABEL maintainer="radim@lipovcan.cz"
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 ARG PHP_VERSION=8.3
 ENV PHP_VERSION=${PHP_VERSION}
@@ -55,9 +55,8 @@ RUN set -x \
     && [ "$success" -eq 1 ]
 
 RUN set -x \
-    && wget https://nginx.org/keys/nginx_signing.key -O - | apt-key add - \
-    && wget -qO /usr/share/keyrings/nginx_signing.key https://nginx.org/keys/nginx_signing.key \
-    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ noble nginx" > /etc/apt/sources.list.d/nginx.list
+    && wget -qO - https://nginx.org/keys/nginx_signing.key | gpg --dearmor --batch --yes -o /usr/share/keyrings/nginx_signing.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.gpg] http://nginx.org/packages/mainline/ubuntu/ noble nginx" > /etc/apt/sources.list.d/nginx.list
 
 RUN set -x \
     && apt-get update

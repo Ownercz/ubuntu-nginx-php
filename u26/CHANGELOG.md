@@ -11,11 +11,11 @@
 
 - Rebase image on `ubuntu:26.04`.
 - Bump default `ARG PHP_VERSION` to `8.5`.
-- CI matrix expanded to PHP `8.2`, `8.3`, `8.4`, `8.5` (multi-arch amd64/arm64).
+- CI builds PHP `8.5` for u26; PHP `8.2`, `8.3`, and `8.4` stay on the u24 line
+  until the `ondrej/php` PPA publishes packages compatible with `resolute`.
 - Simplify nginx repo configuration to a single `deb` line keyed by Ubuntu
   codename (no more dead per-arch branch).
-- Add `UBUNTU_CODENAME` build-arg for falling back to `noble` if upstream
-  third-party repos do not yet ship `resolute` packages at build time.
+- Use native Ubuntu 26.04 PHP packages for u26 and the `resolute` nginx.org repo.
 - Fix CI verification step to inspect the actually-pushed tag
   (`u26-php<version>`) instead of a stale `ubuntu24-*` reference.
 - Push floating `:u26`, `:u26-<sha>`, and `:latest` tags from the PHP 8.5 job.
