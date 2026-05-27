@@ -17,6 +17,7 @@ RUN set -x \
 RUN set -x \
     && apt-get install -yq --no-install-recommends \
         curl \
+        wget \
         gnupg2 \
         software-properties-common \
         unzip \
@@ -54,7 +55,8 @@ RUN set -x \
     && [ "$success" -eq 1 ]
 
 RUN set -x \
-    && curl -fsSL -o /usr/share/keyrings/nginx_signing.key http://nginx.org/keys/nginx_signing.key \
+    && wget https://nginx.org/keys/nginx_signing.key -O - | apt-key add - \
+    && wget -qO /usr/share/keyrings/nginx_signing.key https://nginx.org/keys/nginx_signing.key \
     && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.key] http://nginx.org/packages/mainline/ubuntu/ noble nginx" > /etc/apt/sources.list.d/nginx.list
 
 RUN set -x \
