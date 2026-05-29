@@ -15,6 +15,7 @@ RUN set -x \
     && apt-get install -yq --no-install-recommends apt-utils
 
 RUN set -x \
+    && apt-get update \
     && apt-get install -yq --no-install-recommends \
         curl \
         wget \
@@ -26,6 +27,7 @@ RUN set -x \
         gettext
 
 RUN set -x \
+    && apt-get update \
     && apt-get install -yq --no-install-recommends \
         iproute2 \
         mysql-client \
@@ -59,9 +61,7 @@ RUN set -x \
     && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.gpg] http://nginx.org/packages/mainline/ubuntu/ noble nginx" > /etc/apt/sources.list.d/nginx.list
 
 RUN set -x \
-    && apt-get update
-
-RUN set -x \
+    && apt-get update \
     && apt-get install -yq --no-install-recommends \
         nginx \
         php${PHP_VERSION}-bcmath \

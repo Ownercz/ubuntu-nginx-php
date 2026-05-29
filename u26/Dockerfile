@@ -37,6 +37,7 @@ RUN set -x \
     && apt-get install -yq --no-install-recommends apt-utils
 
 RUN set -x \
+    && apt-get update \
     && apt-get install -yq --no-install-recommends \
         curl \
         wget \
@@ -47,6 +48,7 @@ RUN set -x \
         gettext
 
 RUN set -x \
+    && apt-get update \
     && apt-get install -yq --no-install-recommends \
         iproute2 \
         mysql-client \
@@ -74,10 +76,9 @@ RUN set -x \
     && wget -qO - https://nginx.org/keys/nginx_signing.key | gpg --dearmor --batch --yes -o /usr/share/keyrings/nginx_signing.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/nginx_signing.gpg] http://nginx.org/packages/mainline/ubuntu/ ${UBUNTU_CODENAME} nginx" > /etc/apt/sources.list.d/nginx.list
 
-RUN set -x \
-    && apt-get update
 
 RUN set -x \
+    && apt-get update \
     && apt-get install -yq --no-install-recommends \
         nginx \
         php${PHP_VERSION}-bcmath \
