@@ -5,8 +5,9 @@ trap "postfix reload" SIGHUP
 # ensure postfix queue directories exist and are writable
 mkdir -p /var/spool/postfix/etc
 
-# force new copy of hosts there (otherwise links could be outdated)
+# refresh chroot network files before postfix check/start
 cp /etc/hosts /var/spool/postfix/etc/hosts
+cp /etc/resolv.conf /var/spool/postfix/etc/resolv.conf
 
 # attempt to create any missing queue directories
 if ! postfix check >/dev/null 2>&1; then
@@ -33,6 +34,9 @@ postmap /etc/postfix/generic 2>/dev/null || true
 postmap /etc/postfix/relayhost_map 2>/dev/null || true
 postmap /etc/postfix/virtual 2>/dev/null || true
 newaliases 2>/dev/null || true
+
+# fix ownership/mode for queue tree after fallback creation
+postfix set-permissions 2>/dev/null || true
 
 # start postfix
 postfix start
