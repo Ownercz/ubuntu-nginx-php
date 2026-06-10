@@ -6,6 +6,7 @@ env:
   IMAGE: ownercz/nginx-php
   DEFAULT_PHP: "8.5"
   U26_CODENAME: resolute
+  ADDITIONAL_TAG: ""
 
 jobs:
   Build-Ubuntu-PHP-Image:
@@ -45,12 +46,14 @@ jobs:
               hash="${GITHUB_SHA:-$(git rev-parse HEAD)}"
               hashed="${hash:0:10}"
               build_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+              effective_additional_tag="${ADDITIONAL_TAG:-$(date -u +%d-%m-%Y)}"
 
               echo "IMAGE        = ${IMAGE}"
               echo "OS_TAG       = ${OS_TAG}"
               echo "PHP_VERSION  = ${PHP_VERSION}"
               echo "DEFAULT_PHP  = ${DEFAULT_PHP}"
               echo "U26_CODENAME = ${U26_CODENAME}"
+              echo "ADDITIONAL_TAG = ${effective_additional_tag}"
               echo "SHORT_SHA    = ${hashed}"
               echo "BUILD_DATE   = ${build_date}"
 
@@ -90,6 +93,19 @@ jobs:
                       add_tag "latest"
                   fi
               fi
+
+                    # Optional release/version tags from workflow env.
+                    # If ADDITIONAL_TAG is empty, it defaults to current UTC date dd-mm-yyyy.
+                    # Example: ADDITIONAL_TAG=10-06-2026
+                    if [ -n "${effective_additional_tag}" ]; then
+                      add_tag "${OS_TAG}-php${PHP_VERSION}-${effective_additional_tag}"
+                      add_tag "${OS_TAG}-${effective_additional_tag}"
+
+                    # Keep an unscoped release tag bound to the primary line only.
+                    if [ "${OS_TAG}" = "u26" ] && [ "${PHP_VERSION}" = "${DEFAULT_PHP}" ]; then
+                        add_tag "${effective_additional_tag}"
+                    fi
+                  fi
 
               # ---- Build & push -------------------------------------------------
               BUILD_ARGS=(

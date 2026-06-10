@@ -23,7 +23,6 @@ services:
       - {{ nginx_php_base_path }}/data/postfix/generic:/etc/postfix/generic
       - {{ nginx_php_base_path }}/data/postfix/relayhost_map:/etc/postfix/relayhost_map
       - {{ nginx_php_base_path }}/data/postfix/aliases:/etc/aliases
-      - ../compose/postfix-resolv.conf:/var/spool/postfix/etc/resolv.conf
 {% endif %}
       - ../compose/nginx.conf:/etc/nginx/nginx.conf
       - {{ nginx_php_base_path }}/data/log/:/var/log/

@@ -2,12 +2,23 @@ trap "postfix stop" SIGINT
 trap "postfix stop" SIGTERM
 trap "postfix reload" SIGHUP
 
+copy_if_needed() {
+  src="$1"
+  dst="$2"
+
+  if [ -e "$dst" ] && [ "$(readlink -f "$src")" = "$(readlink -f "$dst")" ]; then
+    return 0
+  fi
+
+  cp "$src" "$dst"
+}
+
 # ensure postfix queue directories exist and are writable
 mkdir -p /var/spool/postfix/etc
 
 # refresh chroot network files before postfix check/start
-cp /etc/hosts /var/spool/postfix/etc/hosts
-cp /etc/resolv.conf /var/spool/postfix/etc/resolv.conf
+copy_if_needed /etc/hosts /var/spool/postfix/etc/hosts
+copy_if_needed /etc/resolv.conf /var/spool/postfix/etc/resolv.conf
 
 # attempt to create any missing queue directories
 if ! postfix check >/dev/null 2>&1; then
@@ -37,12 +48,19 @@ newaliases 2>/dev/null || true
 postfix set-permissions 2>/dev/null || true
 
 # start postfix
-postfix start
+postfix start || exit 1
 
 # lets give postfix some time to start
 sleep 3
 
+pid_file=/var/spool/postfix/pid/master.pid
+if [ ! -s "$pid_file" ]; then
+  echo "Postfix startup failed: missing $pid_file"
+  postfix status || true
+  exit 1
+fi
+
 # wait until postfix is dead (triggered by trap)
-while kill -0 "$(cat /var/spool/postfix/pid/master.pid)"; do
+while kill -0 "$(cat "$pid_file")" 2>/dev/null; do
   sleep 5
 done
