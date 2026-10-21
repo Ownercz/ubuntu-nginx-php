@@ -25,7 +25,6 @@ Pick by how stable you want the reference to be over time.
 | `php8.5`                  | rolling (PHP only)   | Always newest OS for PHP 8.5                  |
 | `u26-<sha>`               | immutable            | Reproducible deploys, default PHP             |
 | `u26-php<X.Y>-<sha>`      | immutable            | Reproducible deploys, exact PHP               |
-| `u24*` (legacy)           | rolling (legacy OS)  | Stay on Ubuntu 24.04, see [`../u24/`](../u24/) |
 
 `<sha>` is the first 10 characters of the source commit hash. Image OCI
 labels (`org.opencontainers.image.revision`, `…image.created`) embed the same
@@ -55,15 +54,22 @@ docker build -t ownercz/nginx-php:u26 .
 | Arg | Default | Purpose |
 |-----|---------|---------|
 | `PHP_VERSION` | `8.5` | PHP minor version installed inside the image. Ubuntu 26.04 currently supports PHP 8.5 only in this image |
+| `PHP_PACKAGE_VERSION` | `8.5.4-0ubuntu1.5` | Exact Ubuntu revision for core PHP packages, including CLI, FPM, and bundled extensions |
 | `UBUNTU_CODENAME` | `resolute` | Codename used for the `nginx.org` apt repo |
 | `VCS_REF` | `local` | Source commit hash (`org.opencontainers.image.revision`) |
 | `BUILD_DATE` | `unknown` | RFC3339 build timestamp (`org.opencontainers.image.created`) |
 
 ### PHP version support
 
-Ubuntu 26.04 builds use the native `resolute` PHP 8.5 packages. PHP 8.2, 8.3,
-and 8.4 remain available on the legacy Ubuntu 24.04 line (`u24-php<X.Y>`) until
-the `ondrej/php` PPA publishes packages compatible with `resolute`.
+Ubuntu 26.04 builds use the native `resolute` PHP 8.5 packages, pinned to
+`8.5.4-0ubuntu1.5`. YAML, Imagick, Redis, and their dependencies retain their
+independent package versions. The PHP package pin is shared by local and CI
+builds through the Dockerfile default; APT fails rather than silently choosing
+a different revision if the requested version is unavailable.
+
+Ubuntu 26.04 with PHP 8.5 is the only supported build. Ubuntu 24.04 and PHP
+8.2 through 8.4 builds have been removed; previously published legacy tags
+no longer receive updates.
 
 ### Multi-arch + full tag set (mirrors what CI publishes)
 

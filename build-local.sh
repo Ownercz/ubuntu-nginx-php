@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 #
-# Build both u24 and u26 images from this repository.
+# Build the Ubuntu 26 image from this repository.
 #
 # Default behavior is local host-arch builds (no push):
 #   ./build-local.sh
 #
 # Examples:
-#   PHP_VERSION=8.4 ./build-local.sh
-#   VARIANTS=u24 PHP_VERSION=8.4 ./build-local.sh
-#   VARIANTS="u24 u26" PHP_VERSIONS="8.2 8.3 8.4 8.5" ./build-local.sh
+#   VARIANTS=u26 PHP_VERSION=8.5 ./build-local.sh
 #   PUSH=1 ./build-local.sh
 #   MULTI_ARCH=1 PUSH=1 ./build-local.sh
 #
@@ -16,22 +14,26 @@
 #   IMAGE          Docker image name (default: ownercz/nginx-php)
 #   PHP_VERSION    Single PHP version to build (default: 8.5)
 #   PHP_VERSIONS   Space-separated PHP versions to build; overrides PHP_VERSION when set
-#   VARIANTS       Space-separated variants to build (default: u24 u26)
+#   VARIANTS       Variant to build (only u26 is supported)
 #   PUSH           0 local only, 1 push to registry (default: 0)
 #   MULTI_ARCH     0 host arch build, 1 buildx multi-arch build (default: 0)
 #   PLATFORMS      Buildx platforms when MULTI_ARCH=1 (default: linux/amd64,linux/arm64)
 #   U26_CODENAME   Optional override for the u26 nginx repository codename
+#   DEFAULT_PHP    Default PHP line for unscoped release tag behavior (default: 8.5)
+#   ADDITIONAL_TAG Optional release tag; defaults to current UTC date dd-mm-yyyy
 
 set -euo pipefail
 
 IMAGE="${IMAGE:-ownercz/nginx-php}"
 PHP_VERSION="${PHP_VERSION:-8.5}"
 PHP_VERSIONS="${PHP_VERSIONS:-}"
-VARIANTS="${VARIANTS:-u24 u26}"
+VARIANTS="${VARIANTS:-u26}"
 PUSH="${PUSH:-0}"
 MULTI_ARCH="${MULTI_ARCH:-0}"
 PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
 U26_CODENAME="${U26_CODENAME:-}"
+DEFAULT_PHP="${DEFAULT_PHP:-8.5}"
+ADDITIONAL_TAG="${ADDITIONAL_TAG:-}"
 
 REPO_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
 cd "${REPO_ROOT}"
@@ -39,6 +41,7 @@ cd "${REPO_ROOT}"
 VCS_REF="${GITHUB_SHA:-$(git rev-parse HEAD 2>/dev/null || echo local)}"
 SHORT_SHA="${VCS_REF:0:10}"
 BUILD_DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+EFFECTIVE_ADDITIONAL_TAG="${ADDITIONAL_TAG:-$(date -u +%d-%m-%Y)}"
 
 create_builder_if_needed() {
     if ! docker buildx inspect multiarch-builder >/dev/null 2>&1; then
@@ -54,6 +57,9 @@ build_variant() {
     local tag_os_php="${IMAGE}:${variant}-php${php_version}"
     local tag_os="${IMAGE}:${variant}"
     local tag_sha="${IMAGE}:${variant}-php${php_version}-${SHORT_SHA}"
+    local tag_os_php_additional="${IMAGE}:${variant}-php${php_version}-${EFFECTIVE_ADDITIONAL_TAG}"
+    local tag_os_additional="${IMAGE}:${variant}-${EFFECTIVE_ADDITIONAL_TAG}"
+    local tag_additional="${IMAGE}:${EFFECTIVE_ADDITIONAL_TAG}"
 
     echo
     echo "== Building ${variant} / PHP ${php_version} =="
@@ -61,6 +67,7 @@ build_variant() {
     echo "  php:          ${php_version}"
     echo "  push:         ${PUSH}"
     echo "  multi-arch:   ${MULTI_ARCH}"
+    echo "  extra tag:    ${EFFECTIVE_ADDITIONAL_TAG}"
 
     local build_args=(
         --file "${variant}/Dockerfile"
@@ -69,6 +76,8 @@ build_variant() {
         --build-arg "BUILD_DATE=${BUILD_DATE}"
         --tag "${tag_os_php}"
         --tag "${tag_sha}"
+        --tag "${tag_os_php_additional}"
+        --tag "${tag_os_additional}"
     )
 
     if [[ "${variant}" == "u26" && -n "${U26_CODENAME}" ]]; then
@@ -76,8 +85,12 @@ build_variant() {
         echo "  u26 codename: ${U26_CODENAME}"
     fi
 
-    # Keep :u24 and :u26 tags in local/pushed result for convenience.
     build_args+=(--tag "${tag_os}")
+
+    # Keep unscoped release tag aligned with the primary line only.
+    if [[ "${variant}" == "u26" && "${php_version}" == "${DEFAULT_PHP}" ]]; then
+        build_args+=(--tag "${tag_additional}")
+    fi
 
     if [[ "${MULTI_ARCH}" == "1" ]]; then
         create_builder_if_needed
@@ -108,7 +121,12 @@ build_variant() {
                 "${variant}"
             docker push "${tag_os_php}"
             docker push "${tag_sha}"
+            docker push "${tag_os_php_additional}"
+            docker push "${tag_os_additional}"
             docker push "${tag_os}"
+            if [[ "${variant}" == "u26" && "${php_version}" == "${DEFAULT_PHP}" ]]; then
+                docker push "${tag_additional}"
+            fi
         else
             docker build \
                 "${build_args[@]}" \
@@ -123,11 +141,11 @@ validate_variant() {
     local variant="$1"
 
     case "${variant}" in
-        u24|u26)
+        u26)
             ;;
         *)
             echo "Unknown variant: ${variant}" >&2
-            echo "Supported variants: u24 u26" >&2
+            echo "Supported variants: u26" >&2
             exit 1
             ;;
     esac
@@ -141,6 +159,7 @@ validate_variant() {
 echo "Repository:   ${REPO_ROOT}"
 echo "Commit:       ${SHORT_SHA}"
 echo "Build date:   ${BUILD_DATE}"
+echo "Extra tag:    ${EFFECTIVE_ADDITIONAL_TAG}"
 echo "Variants:     ${VARIANTS}"
 
 if [[ -n "${PHP_VERSIONS}" ]]; then

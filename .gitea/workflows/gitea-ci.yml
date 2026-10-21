@@ -1,10 +1,11 @@
-name: Build Nginx and PHP images (u24 + u26)
-run-name: Build and publish u24/u26 image matrix
+name: Build Nginx and PHP image (Ubuntu 26)
+run-name: Build and publish Ubuntu 26 with PHP 8.5
 on: [push]
 
 env:
   IMAGE: ownercz/nginx-php
   DEFAULT_PHP: "8.5"
+  PHP_PACKAGE_VERSION: "8.5.4-0ubuntu1.5"
   U26_CODENAME: resolute
   ADDITIONAL_TAG: ""
 
@@ -14,15 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: ['u24', 'u26']
-        php: ['8.2', '8.3', '8.4', '8.5']
-        exclude:
-          - variant: 'u26'
-            php: '8.2'
-          - variant: 'u26'
-            php: '8.3'
-          - variant: 'u26'
-            php: '8.4'
+        variant: ['u26']
+        php: ['8.5']
     steps:
       - name: Prepare | Setup git
         run: |
@@ -51,6 +45,7 @@ jobs:
               echo "IMAGE        = ${IMAGE}"
               echo "OS_TAG       = ${OS_TAG}"
               echo "PHP_VERSION  = ${PHP_VERSION}"
+              echo "PHP_PACKAGE_VERSION = ${PHP_PACKAGE_VERSION}"
               echo "DEFAULT_PHP  = ${DEFAULT_PHP}"
               echo "U26_CODENAME = ${U26_CODENAME}"
               echo "ADDITIONAL_TAG = ${effective_additional_tag}"
@@ -111,6 +106,7 @@ jobs:
               BUILD_ARGS=(
                   --file Dockerfile
                   --build-arg "PHP_VERSION=${PHP_VERSION}"
+                  --build-arg "PHP_PACKAGE_VERSION=${PHP_PACKAGE_VERSION}"
                   --build-arg "VCS_REF=${hash}"
                   --build-arg "BUILD_DATE=${build_date}"
               )

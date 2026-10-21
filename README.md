@@ -5,13 +5,14 @@
 
 A production-ready Docker image based on **Ubuntu 26.04 LTS** with **Nginx**, **PHP-FPM**, and **Supervisor**. Originally forked from [jdsdev/ubuntu-nginx-php](https://github.com/jdsdev/ubuntu-nginx-php), heavily modified for multi-site hosting with optional Postfix mail relay.
 
-A legacy Ubuntu 24.04 build is still maintained side-by-side under the [`u24/`](u24/) directory and the `u24*` Docker Hub tags — see the [Legacy `u24` line](#legacy-u24-line) section below.
+Ubuntu 26.04 with PHP 8.5 is the only supported build. Ubuntu 24.04 builds
+have been retired; previously published `u24*` tags no longer receive updates.
 
 ## Features
 
 - **Ubuntu 26.04 LTS** base image (codename `resolute`)
 - **Nginx** (mainline) with optimized configuration
-- **PHP-FPM** with configurable version (u26 defaults to 8.5; u24 supports 8.2 - 8.5)
+- **PHP-FPM 8.5**, pinned to Ubuntu package revision `8.5.4-0ubuntu1.5`
 - **Supervisor** managing Nginx + PHP-FPM processes
 - **Multi-architecture** support (AMD64 + ARM64/Ampere)
 - **Postfix** included for outgoing mail relay (optional)
@@ -207,19 +208,19 @@ cd u26
 
 ## CI workflow
 
-A single Gitea Actions workflow now builds and publishes the supported image
-matrix: `u24` across PHP `8.2` - `8.5`, plus `u26` on PHP `8.5`:
+A single [Gitea Actions workflow](.gitea/workflows/gitea-ci.yml) builds and
+publishes Ubuntu 26.04 with PHP 8.5 for `linux/amd64` and `linux/arm64`.
+It explicitly passes `PHP_PACKAGE_VERSION=8.5.4-0ubuntu1.5` to the Docker build.
 
-- `.gitea/workflows/gitea-ci.yml`
+The workflow publishes `latest`, `u26`, and `php8.5`, along with OS/PHP-scoped,
+commit, and release tags. Ubuntu 24.04 and PHP 8.2 through 8.4 are no longer built.
 
-The workflow keeps `latest` tied to `u26` on default PHP (`8.5`) and publishes
-OS-scoped tags for both variants. PHP-floating tags point at the newest OS line
-that currently supports that PHP minor.
-
-### Custom PHP Version
+### Pinned PHP Package Build
 
 ```bash
-docker build --build-arg PHP_VERSION=8.4 -t ownercz/nginx-php:u24-php8.4 u24
+docker build --build-arg PHP_VERSION=8.5 \
+  --build-arg PHP_PACKAGE_VERSION=8.5.4-0ubuntu1.5 \
+  -t ownercz/nginx-php:u26-php8.5 u26
 ```
 
 ## Configuration
@@ -275,11 +276,10 @@ Anatomy of a tag: `<channel>[-php<X.Y>][-<sha>]`
 |-----|---------|------------|-------------|----------------|
 | `latest` | rolling | no | no (default 8.5) | no |
 | `u26` | rolling | yes (Ubuntu 26.04) | no (default 8.5) | no |
-| `u24-php8.4` | rolling | yes | yes | no |
-| `php8.4` | rolling | no (newest OS that supports PHP 8.4) | yes | no |
+| `u26-php8.5` | rolling | yes | yes | no |
+| `php8.5` | rolling | no | yes | no |
 | `u26-<sha>` | immutable | yes | no (default 8.5) | yes |
-| `u24-php8.4-<sha>` | immutable | yes | yes | yes |
-| `u24*` | legacy | yes (Ubuntu 24.04) | varies | varies |
+| `u26-php8.5-<sha>` | immutable | yes | yes | yes |
 
 `<sha>` is the first 10 characters of the source commit hash. Image OCI
 labels (`org.opencontainers.image.revision`, `org.opencontainers.image.created`)
@@ -295,27 +295,20 @@ docker buildx imagetools inspect ownercz/nginx-php:u26 --format '{{ json . }}' \
 | You want… | Use |
 |-----------|-----|
 | Quickest start, willing to upgrade with the project | `latest` |
-| Lock to one PHP minor, follow OS + security updates | `php8.4` (or `u24-php8.4` to also pin the OS) |
-| Reproducible production deploys | A commit-pinned tag: `u24-php8.4-<sha>` or `u26-php8.5-<sha>` |
-| Stay on Ubuntu 24.04 a bit longer | `u24` or `u24-php<X.Y>` |
+| Lock to one PHP minor | `php8.5` (or `u26-php8.5` to also pin the OS) |
+| Reproducible production deploys | A commit-pinned tag: `u26-php8.5-<sha>` |
 
 > **Heads-up on `:latest`** — `:latest` was repointed from the Ubuntu 24.04
 > line (PHP 8.3 default) to Ubuntu 26.04 + PHP 8.5. If you used `:latest` in
-> production, pin to `u24` (or to a `u26-php<X.Y>-<sha>` tag) before pulling.
+> production, review compatibility before pulling and use a
+> `u26-php8.5-<sha>` tag to pin a specific build.
 
-## Legacy `u24` line
+## Retired Ubuntu 24 Builds
 
-The Ubuntu 24.04 build is still produced from the [`u24/`](u24/) directory.
-Use it if you cannot yet move to Ubuntu 26.04, or if you need PHP 8.2, 8.3,
-or 8.4 while the `ondrej/php` PPA does not publish `resolute` packages.
-
-```bash
-docker pull ownercz/nginx-php:u24
-```
-
-Note that `:latest` no longer points at `u24` — pin explicitly to `u24` (or to
-a specific `u24-php<X.Y>` tag) if you need the legacy behaviour.
+The Ubuntu 24.04 source tree and build jobs have been removed. Previously
+published `u24*` and PHP 8.2 through 8.4 tags are no longer updated by this
+project. Migrate to `u26-php8.5` for maintained builds.
 
 ## License
 
-MIT — See [LICENSE.md](u26/LICENSE.md) (the legacy `u24` line uses [`u24/LICENSE.md`](u24/LICENSE.md)).
+MIT — See [LICENSE.md](LICENSE.md).

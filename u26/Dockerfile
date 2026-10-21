@@ -5,6 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ARG PHP_VERSION=8.5
 ENV PHP_VERSION=${PHP_VERSION}
+ARG PHP_PACKAGE_VERSION=8.5.4-0ubuntu1.5
 
 # Ubuntu codename used for the nginx.org apt repository.
 ARG UBUNTU_CODENAME=resolute
@@ -81,19 +82,20 @@ RUN set -x \
     && apt-get update \
     && apt-get install -yq --no-install-recommends \
         nginx \
-        php${PHP_VERSION}-bcmath \
-        php${PHP_VERSION}-cli \
-        php${PHP_VERSION}-curl \
-        php${PHP_VERSION}-fpm \
-        php${PHP_VERSION}-gd \
-        php${PHP_VERSION}-gmp \
-        php${PHP_VERSION}-intl \
-        php${PHP_VERSION}-mbstring \
-        php${PHP_VERSION}-mysql \
-        php${PHP_VERSION}-readline \
-        php${PHP_VERSION}-soap \
-        php${PHP_VERSION}-xml \
-        php${PHP_VERSION}-zip \
+        php${PHP_VERSION}-bcmath=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-cli=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-common=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-curl=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-fpm=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-gd=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-gmp=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-intl=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-mbstring=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-mysql=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-readline=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-soap=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-xml=${PHP_PACKAGE_VERSION} \
+        php${PHP_VERSION}-zip=${PHP_PACKAGE_VERSION} \
         php${PHP_VERSION}-yaml \
         php${PHP_VERSION}-imagick \
         php${PHP_VERSION}-redis
