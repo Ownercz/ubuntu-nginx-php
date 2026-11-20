@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ARG PHP_VERSION=8.5
 ENV PHP_VERSION=${PHP_VERSION}
-ARG PHP_PACKAGE_VERSION=8.5.4-0ubuntu1.5
+ARG PHP_PACKAGE_VERSION=8.5.4-0ubuntu1.6
 
 # Ubuntu codename used for the nginx.org apt repository.
 ARG UBUNTU_CODENAME=resolute
